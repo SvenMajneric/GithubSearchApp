@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/recycler_item_background"
+    android:layout_margin="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <ImageView
+            android:id="@+id/ivAuthorImage"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:textAlignment="center"
+            android:layout_weight="1"
+            android:padding="4dp" />
+
+        <TextView
+        android:id="@+id/tvRepoName"
+        android:padding="4dp"
+        android:layout_width="0dp"
+        android:textAlignment="center"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="Name of repository"/>
+
+        <TextView
+            android:id="@+id/tvAuthorName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:layout_weight="1"
+
+            android:padding="4dp"
+            android:text="Name of Author"/>
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <TextView
+        android:id="@+id/tvForksNumber"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:layout_weight="1"
+            android:padding="4dp"
+        android:text="Forks 15"/>
+
+        <TextView
+            android:id="@+id/tvIssuesNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:padding="4dp"
+            android:text="Issues 15"/>
+
+        <TextView
+            android:id="@+id/tvWatchersNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:padding="4dp"
+            android:text="Watchers 15"/>
+    </LinearLayout>
+
+
+
+
+
+
+</LinearLayout>
