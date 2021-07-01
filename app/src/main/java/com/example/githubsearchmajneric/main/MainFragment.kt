@@ -5,20 +5,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.githubsearchmajneric.R
 import com.example.githubsearchmajneric.databinding.FragmentMainBinding
-import com.example.githubsearchmajneric.model.Item
 import com.example.githubsearchmajneric.model.SearchedRepository
 import com.example.githubsearchmajneric.util.Resource
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.*
 import java.util.*
 
 @AndroidEntryPoint
@@ -56,9 +50,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
         mainScreenAdapter.navigationListener = object  : MainScreenAdapter.NavigationInteractionListener{
             override fun onItemClicked(savedRepo: SearchedRepository) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    viewModel.getSpecificSavedRepo(savedRepo.repoName)
-                }
+                viewModel.setDetailRepoData(savedRepo.repoName)
                 findNavController().navigate(R.id.action_mainFragment_to_detailFragment)
             }
 
@@ -83,19 +75,7 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             when(response){
                 is Resource.Success -> {
                     response.data?.let { responseModel ->
-
                         binding.progressBar.visibility = View.INVISIBLE
-
-                        lifecycleScope.async(Dispatchers.IO) {
-                            viewModel.deleteAll()
-                            viewModel.saveSortedResponses(responseModel.items)
-                            Log.d("MainActivity", "Finished saving data to Room")
-                        }
-
-
-
-
-
                     }
                 }
 
@@ -108,7 +88,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
 
                 is Resource.Loading -> {
                     binding.progressBar.visibility = View.VISIBLE
-
                     Log.i("MainActivity", "I'm loading the content")
                 }
 
@@ -125,7 +104,6 @@ class MainFragment : Fragment(R.layout.fragment_main) {
         val sortParameter = binding.spSortBy.selectedItem.toString().lowercase(Locale.getDefault())
 
         if (searchedRepository.isNotBlank()){
-            viewModel.deleteAll()
             viewModel.fetchRepositoryWithName(searchedRepository, sortParameter)
         }
     }

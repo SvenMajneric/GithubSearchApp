@@ -12,7 +12,6 @@ import com.example.githubsearchmajneric.repository.GithubRepository
 import com.example.githubsearchmajneric.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,75 +26,82 @@ class MainScreenViewModel @Inject constructor(private val gitRepo: GithubReposit
 
 
 
+
     fun getSavedRepos(): LiveData<List<SearchedRepository>> {
         return gitRepo.getSavedRepos()
     }
 
     suspend fun getSpecificSavedRepo(repoName: String){
-        var response: SearchedRepository? = null
+        var specificRepository: SearchedRepository? = null
 
-        viewModelScope.async(Dispatchers.IO) {
-             response = gitRepo.getSpecificSavedRepo(repoName)
+        viewModelScope.async {
+             specificRepository = gitRepo.getSpecificSavedRepo(repoName)
+            _selectedItem.postValue(specificRepository)
         }.await()
 
-
-        _selectedItem.postValue(response)
-
     }
 
-    private suspend fun saveRepository(repo: SearchedRepository) {
-        viewModelScope.launch(Dispatchers.IO) {
-            gitRepo.saveRepository(repo)
+    fun setDetailRepoData(repoName: String){
+        viewModelScope.launch {
+            getSpecificSavedRepo(repoName)
         }
     }
 
 
-     suspend fun saveSortedResponses(sortedResponse: List<Item>){
 
-        for (searchedRepo in sortedResponse){
-            val repo = SearchedRepository(
-                0,
-                searchedRepo.name,
-                searchedRepo.owner.login,
-                searchedRepo.owner.avatar_url,
-                searchedRepo.watchers_count,
-                searchedRepo.forks,
-                searchedRepo.open_issues,
-                searchedRepo.language,
-                searchedRepo.created_at,
-                searchedRepo.updated_at
-            )
-            Log.d("DataInsertion", "${repo.repoName}  ${repo.forks}")
-            viewModelScope.async(Dispatchers.IO) {
-                saveRepository(repo)
-                delay(400)
-            }.await()
 
-        }
-    }
+    private suspend fun saveRepository(repo: SearchedRepository) = viewModelScope.async { gitRepo.saveRepository(repo) }.await()
+
+
+
+     private suspend fun saveSortedResponses(sortedResponse: List<Item>)=
+         viewModelScope.async {
+
+             try{
+                 for (searchedRepo in sortedResponse){
+                     if (searchedRepo.language == null){
+                         searchedRepo.language = "Not known"
+                     }
+                     val repo = SearchedRepository(
+                         0,
+                         searchedRepo.name,
+                         searchedRepo.owner.login,
+                         searchedRepo.owner.avatar_url,
+                         searchedRepo.watchers_count,
+                         searchedRepo.forks,
+                         searchedRepo.open_issues,
+                         searchedRepo.language!!,
+                         searchedRepo.created_at,
+                         searchedRepo.updated_at
+                     )
+                     saveRepository(repo)
+                     Log.d("DataInsertion", "${repo.repoName}  ${repo.forks}")
+                 }
+             } catch (e: Exception){
+                 Log.d("CoroutineException", e.message.toString())
+             }
+
+
+        }.await()
+
 
     fun fetchRepositoryWithName(searchQuery: String, sortParameter: String){
         viewModelScope.launch(Dispatchers.IO) {
             _repositoriesData.postValue(Resource.Loading())
             val response = gitRepo.fetchSortedRepositories(searchQuery, sortParameter)
-//
-            _repositoriesData.postValue(handleGitHubResponse(response))
+            response.data?.let { githubApiResponse ->
+                deleteAll()
+                saveSortedResponses(githubApiResponse.items)
+            }
+            _repositoriesData.postValue(response)
         }
     }
 
     fun deleteAll(){
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             gitRepo.deleteAll()
         }
     }
 
-    private fun handleGitHubResponse(response: Response<GithubRepositorySearchResponse>): Resource<GithubRepositorySearchResponse>{
-        if (response.isSuccessful){
-            response.body()?.let { resultResponse ->
-                return Resource.Success(resultResponse)
-            }
-        }
-        return Resource.Error(response.message())
-    }
 
 }

@@ -69,7 +69,14 @@ class MainScreenAdapter: RecyclerView.Adapter<MainScreenAdapter.MainViewHolder>(
                 .load(items[position].authorImageUrl)
                 .into(itemBinding.ivAuthorImage)
         }
+
         holder.bind(items[position])
+    }
+
+    private var onRepositoryClickListener: ((SearchedRepository) -> Unit)? = null
+
+    fun setOnRepositoryClickListener(listener: (SearchedRepository) -> Unit) {
+        onRepositoryClickListener = listener
     }
 
     override fun getItemCount(): Int {

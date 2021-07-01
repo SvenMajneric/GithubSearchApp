@@ -2,8 +2,11 @@ package com.example.githubsearchmajneric.repository
 
 import androidx.lifecycle.LiveData
 import com.example.githubsearchmajneric.db.AppDatabase
+import com.example.githubsearchmajneric.model.GithubRepositorySearchResponse
 import com.example.githubsearchmajneric.model.SearchedRepository
 import com.example.githubsearchmajneric.networking.GitHubService
+import com.example.githubsearchmajneric.util.Resource
+import retrofit2.Response
 import javax.inject.Inject
 
 class GithubRepository @Inject constructor(
@@ -13,12 +16,12 @@ class GithubRepository @Inject constructor(
 
     private val repositoriesDao = database.repositoriesDao()
 
-    suspend fun fetchSearchedRepositories(searchQuery: String) = api.searchForRepositories(searchQuery)
+    suspend fun fetchSearchedRepositories(searchQuery: String) = handleGitHubResponse(api.searchForRepositories(searchQuery))
 
-    suspend fun fetchSortedRepositories(searchQuery: String, sortParameter: String) = api.searchForRepositoriesSorted(searchQuery, sortParameter, 8, 1)
+    suspend fun fetchSortedRepositories(searchQuery: String, sortParameter: String) = handleGitHubResponse(api.searchForRepositoriesSorted(searchQuery, sortParameter, 8, 1))
 
     suspend fun saveRepository(searchedRepo: SearchedRepository){
-        repositoriesDao.saveSearchedRepo(searchedRepo)
+        return repositoriesDao.saveSearchedRepo(searchedRepo)
     }
 
     fun getSavedRepos(): LiveData<List<SearchedRepository>>{
@@ -29,6 +32,16 @@ class GithubRepository @Inject constructor(
     }
 
     suspend fun deleteAll(){
-        repositoriesDao.deleteAll()
+        return repositoriesDao.deleteAll()
     }
+
+    private fun handleGitHubResponse(response: Response<GithubRepositorySearchResponse>): Resource<GithubRepositorySearchResponse> {
+        if (response.isSuccessful){
+            response.body()?.let { resultResponse ->
+                return Resource.Success(resultResponse)
+            }
+        }
+        return Resource.Error(response.message())
+    }
+
 }
